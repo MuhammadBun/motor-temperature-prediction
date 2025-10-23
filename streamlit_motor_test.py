@@ -15,10 +15,11 @@ def local_css(file_name):
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 # =========================
-# Plotting function
+# Plotting function - OPTIMIZED
 # =========================
 def plot_live(collected_preds, collected_actuals, threshold=80, fig_width=8, fig_height=4, use_container_width=False):
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=100, facecolor="#051224")
+    # Create figure with optimized settings for speed
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=80, facecolor="#051224")  # Reduced DPI
     ax.set_facecolor("#051224")
 
     # Shadow background
@@ -30,13 +31,13 @@ def plot_live(collected_preds, collected_actuals, threshold=80, fig_width=8, fig
     # Line colors
     color = "lime" if (collected_preds[-1] <= threshold) else "red"
 
-    # Plot data
+    # Plot data with optimized parameters
     ax.plot(collected_preds, label="Predicted", color=color, linewidth=1.5)
-    ax.plot(collected_actuals, label="Actual", color="cyan", alpha=0.9, linewidth=1.5)
+    ax.plot(collected_actuals, label="Actual", color="white", alpha=0.9, linewidth=1.5)
     ax.axhline(y=threshold, color="white", linestyle="--", linewidth=3.0, label="Threshold")
 
     # Grid and limits
-    ax.grid(True, color='#1a2f4a', linestyle=':', linewidth=1.0)
+    ax.grid(True, color="#4c5663", linestyle=':', linewidth=1.0)
     ax.set_axisbelow(True)
     ax.set_ylim(0, 100)
 
@@ -45,25 +46,28 @@ def plot_live(collected_preds, collected_actuals, threshold=80, fig_width=8, fig
                          facecolor='white', alpha=0.2, edgecolor='white', linewidth=1.5, zorder=10)
     fig.patches.append(white_box)
 
-    # Add text inside the white box - ALL WHITE TEXT
+    # Add text inside the white box
     current_temp = collected_preds[-1] if collected_preds else 0
     status = "NORMAL" if current_temp <= threshold else "ALERT"
     
-    # Changed both texts to white
     ax.text(0.04, 0.93, f"Status: {status}", transform=fig.transFigure, 
             fontsize=12, fontweight='bold', color='white', zorder=11)
     ax.text(0.04, 0.88, f"Temp: {current_temp:.1f}°C", transform=fig.transFigure, 
             fontsize=10, fontweight='bold', color='white', zorder=11)
 
-    # Titles and labels
+    # Titles and labels - ALL WHITE TEXT
     ax.set_title("Live DNN PM Temperature Prediction", color="white", fontsize=22, pad=25, fontweight='bold')
-    ax.set_xlabel("Time (sample)", color="white", fontsize=16, fontweight='semibold', labelpad=15)
-    ax.set_ylabel("PM Temperature (°C)", color="white", fontsize=16, fontweight='semibold', labelpad=15)
+    ax.set_xlabel("Time (sample)", color="white", fontsize=16, fontweight='semibold', labelpad=15)  # WHITE
+    ax.set_ylabel("PM Temperature (°C)", color="white", fontsize=16, fontweight='semibold', labelpad=15)  # WHITE
 
-    # Legend - ALL WHITE TEXT
+    # Set axis tick colors to white
+    ax.tick_params(axis='x', colors='white', labelsize=12)  # WHITE X-axis
+    ax.tick_params(axis='y', colors='white', labelsize=12)  # WHITE Y-axis
+
+    # Legend
     legend_elements = [
         plt.Line2D([0], [0], color=color, lw=6, label='Predicted'),
-        plt.Line2D([0], [0], color='cyan', lw=5, label='Actual'),
+        plt.Line2D([0], [0], color='white', lw=5, label='Actual'),  # Changed from cyan to white
         plt.Line2D([0], [0], color='white', linestyle='--', lw=4, label='Threshold')
     ]
     
@@ -93,7 +97,7 @@ def main():
 
     st.title("Real-time DNN PM Temperature Prediction Simulator")
 
-    # UPATHS FOR DEPLOYMENT
+    # Paths 
     features_path = "data/X_test_reloaded.csv"
     target_path = "data/y_test_reloaded.csv"
     model_path = "model/motor_dnn_best.keras"
@@ -147,7 +151,7 @@ def main():
     # Auto-start the simulation
     st.session_state.running = True
 
-    # Simulation loop
+    # Simulation loop - OPTIMIZED
     while st.session_state.running and i < len(X_test):
         x = X_test[i].reshape(1, -1)
         pred = model.predict(x, verbose=0)[0][0]
@@ -163,14 +167,15 @@ def main():
         collected_preds.append(pred)
         collected_actuals.append(actual)
 
-        # Plot figure
-        fig, use_container_width_flag = plot_live(
-            collected_preds, collected_actuals, threshold,
-            fig_width=fig_width, fig_height=fig_height,
-            use_container_width=use_container_width
-        )
-        chart_placeholder.pyplot(fig, use_container_width=use_container_width_flag)
-        plt.close(fig)
+        # Plot figure only every 3 samples for faster updates
+        if i % 3 == 0:  # Reduced plot frequency
+            fig, use_container_width_flag = plot_live(
+                collected_preds, collected_actuals, threshold,
+                fig_width=fig_width, fig_height=fig_height,
+                use_container_width=use_container_width
+            )
+            chart_placeholder.pyplot(fig, use_container_width=use_container_width_flag)
+            plt.close(fig)
 
         # Update metrics every 0.3 sec
         if time.time() - last_update_time >= 0.3:
@@ -204,7 +209,7 @@ def main():
             last_update_time = time.time()
 
         i += 1
-        time.sleep(0.01)
+        time.sleep(0.005)  # Reduced sleep time for faster simulation
 
     # Show completion message when done
     if i >= len(X_test):
