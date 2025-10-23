@@ -96,7 +96,7 @@ def main():
     # UPATHS FOR DEPLOYMENT
     features_path = "data/X_test_reloaded.csv"
     target_path = "data/y_test_reloaded.csv"
-    model_path = "models/motor_dnn_best.keras"
+    model_path = "model/motor_dnn_best.keras"
 
     # Loading spinner
     with st.spinner("Loading model and datasets... Please wait"):
