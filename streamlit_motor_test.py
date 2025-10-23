@@ -19,7 +19,7 @@ def local_css(file_name):
 # =========================
 def plot_live(collected_preds, collected_actuals, threshold=80, fig_width=8, fig_height=4, use_container_width=False):
     # Create figure with optimized settings for speed
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=80, facecolor="#051224")  # Reduced DPI
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=80, facecolor="#051224")
     ax.set_facecolor("#051224")
 
     # Shadow background
@@ -57,17 +57,17 @@ def plot_live(collected_preds, collected_actuals, threshold=80, fig_width=8, fig
 
     # Titles and labels - ALL WHITE TEXT
     ax.set_title("Live DNN PM Temperature Prediction", color="white", fontsize=22, pad=25, fontweight='bold')
-    ax.set_xlabel("Time (sample)", color="white", fontsize=16, fontweight='semibold', labelpad=15)  # WHITE
-    ax.set_ylabel("PM Temperature (°C)", color="white", fontsize=16, fontweight='semibold', labelpad=15)  # WHITE
+    ax.set_xlabel("Time (sample)", color="white", fontsize=16, fontweight='semibold', labelpad=15)
+    ax.set_ylabel("PM Temperature (°C)", color="white", fontsize=16, fontweight='semibold', labelpad=15)
 
     # Set axis tick colors to white
-    ax.tick_params(axis='x', colors='white', labelsize=12)  # WHITE X-axis
-    ax.tick_params(axis='y', colors='white', labelsize=12)  # WHITE Y-axis
+    ax.tick_params(axis='x', colors='white', labelsize=12)
+    ax.tick_params(axis='y', colors='white', labelsize=12)
 
     # Legend
     legend_elements = [
         plt.Line2D([0], [0], color=color, lw=6, label='Predicted'),
-        plt.Line2D([0], [0], color='white', lw=5, label='Actual'),  # Changed from cyan to white
+        plt.Line2D([0], [0], color='white', lw=5, label='Actual'),
         plt.Line2D([0], [0], color='white', linestyle='--', lw=4, label='Threshold')
     ]
     
@@ -83,6 +83,69 @@ def plot_live(collected_preds, collected_actuals, threshold=80, fig_width=8, fig
     return fig, use_container_width
 
 # =========================
+# PROJECT INFORMATION SECTION (Moved to top)
+# =========================
+def show_project_info():
+    st.markdown("---")
+    
+    st.markdown("""
+    ## Project Overview
+    This project predicts **permanent magnet temperature (PM)** in real-time using **1.3+ million sensor readings** from PMSM motors. The DNN model enables instant thermal monitoring to prevent motor damage and optimize efficiency in industrial applications.
+
+    **Dataset Source:** [Electric Motor Temperature Dataset](https://www.kaggle.com/datasets/wkirgsn/electric-motor-temperature)
+
+    ---
+
+    ## Model Performance Excellence
+
+    | Metric | Performance | Industrial Standard |
+    |--------|-------------|---------------------|
+    | **Mean Absolute Error (MAE)** | 1.28 °C | ±2–3°C |
+    | **Root Mean Squared Error (RMSE)** | 1.78 °C | < 2.0°C |
+    | **R² Score (Variance Explained)** | 0.991 (99.1%) | > 0.95 |
+    | **95% Error Range** | ±3.59 °C | ±5°C |
+
+    ### **Business Impact:**
+    - **Predicts within ±1.3°C on average** - exceeds industrial requirements
+    - **Explains 99.1% of temperature variance** - highly reliable
+    - **95% of predictions within ±3.6°C** - consistent performance
+
+
+    ---
+
+    ## Technical Implementation
+
+    ### Data Strategy
+    - **X and Y datasets are shuffled** to create realistic real-world simulation
+    - **Test data includes outliers** (high/low temperatures) for robust validation
+    - **Real-time accuracy (85%-94%)** reflects challenging edge cases in production data
+
+    ### Model Architecture
+    - **Deep Neural Network (DNN)** with optimized hidden layers
+    - **Input Features:** Voltage, current, speed, coolant, ambient temperature
+    - **Target:** Permanent magnet temperature (`pm`)
+    - **Training Data:** 1,337,097 samples from actual PMSM operations
+
+    ### Real-time Performance Notes
+    - **Live accuracy (85%-94%)** is expected due to test dataset containing **extreme temperature scenarios and cooler/earlier stages**
+    - **Outliers in test data** represent real-world challenging conditions including **cold starts and thermal stabilization phases**
+    - **Model demonstrates robustness** by handling edge cases while maintaining high overall accuracy
+    - **Cooler temperature ranges** (35°C-60°C) show higher variance as motors transition from cold to operating states
+    - **Thermal stabilization phases** during startup present challenging prediction scenarios
+    - **Real-world validation** includes complete motor lifecycle from cold start to peak operation
+
+    ---
+
+    ## Project Links
+    - **GitHub Repository:** [github.com/MuhammadBun/motor-temperature-prediction](https://github.com/MuhammadBun/motor-temperature-prediction)
+    - **Kaggle Dataset:** [kaggle.com/datasets/wkirgsn/electric-motor-temperature](https://kaggle.com/datasets/wkirgsn/electric-motor-temperature)
+    - **Live Demo:** [motor-temperature-prediction.streamlit.app](https://motor-temperature-prediction.streamlit.app)
+
+    ---
+
+    """)
+
+# =========================
 # Streamlit app
 # =========================
 def main():
@@ -96,6 +159,12 @@ def main():
     local_css("style.css")
 
     st.title("Real-time DNN PM Temperature Prediction Simulator")
+
+    # Show project info FIRST (before simulation)
+    show_project_info()
+    
+    st.markdown("---")
+    st.subheader("Live Simulation")
 
     # Paths 
     features_path = "data/X_test_reloaded.csv"
@@ -133,6 +202,12 @@ def main():
     fig_height = st.sidebar.slider("Figure height", min_value=4, max_value=20, value=10)
     use_container_width = st.sidebar.checkbox("Stretch to container width", value=False)
 
+    # Add a stop button
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        if st.button("Stop Simulation", type="secondary"):
+            st.session_state.running = False
+
     # Placeholders
     chart_placeholder = st.empty()
     metrics_col1, metrics_col2, metrics_col3 = st.columns(3)
@@ -141,36 +216,41 @@ def main():
     metric_acc = metrics_col3.empty()
 
     # Initialize
-    i = 0
-    collected_preds = []
-    collected_actuals = []
-    last_pred = None
-    last_actual = None
-    last_update_time = time.time()
-
-    # Auto-start the simulation
-    st.session_state.running = True
+    if "running" not in st.session_state:
+        st.session_state.running = True
+    if "i" not in st.session_state:
+        st.session_state.i = 0
+    if "collected_preds" not in st.session_state:
+        st.session_state.collected_preds = []
+    if "collected_actuals" not in st.session_state:
+        st.session_state.collected_actuals = []
+    if "last_pred" not in st.session_state:
+        st.session_state.last_pred = None
+    if "last_actual" not in st.session_state:
+        st.session_state.last_actual = None
+    if "last_update_time" not in st.session_state:
+        st.session_state.last_update_time = time.time()
 
     # Simulation loop - OPTIMIZED
-    while st.session_state.running and i < len(X_test):
-        x = X_test[i].reshape(1, -1)
+    while st.session_state.running and st.session_state.i < len(X_test):
+        x = X_test[st.session_state.i].reshape(1, -1)
         pred = model.predict(x, verbose=0)[0][0]
-        actual = y_test[i]
+        actual = y_test[st.session_state.i]
 
         # Smoothing
-        if last_pred is not None and smoothing_factor > 1:
-            pred = last_pred + (pred - last_pred) / smoothing_factor
-            actual = last_actual + (actual - last_actual) / smoothing_factor
-        last_pred = pred
-        last_actual = actual
+        if st.session_state.last_pred is not None and smoothing_factor > 1:
+            pred = st.session_state.last_pred + (pred - st.session_state.last_pred) / smoothing_factor
+            actual = st.session_state.last_actual + (actual - st.session_state.last_actual) / smoothing_factor
+        st.session_state.last_pred = pred
+        st.session_state.last_actual = actual
 
-        collected_preds.append(pred)
-        collected_actuals.append(actual)
+        st.session_state.collected_preds.append(pred)
+        st.session_state.collected_actuals.append(actual)
 
         # Plot figure only every 3 samples for faster updates
-        if i % 3 == 0:  # Reduced plot frequency
+        if st.session_state.i % 3 == 0:
             fig, use_container_width_flag = plot_live(
-                collected_preds, collected_actuals, threshold,
+                st.session_state.collected_preds, st.session_state.collected_actuals, threshold,
                 fig_width=fig_width, fig_height=fig_height,
                 use_container_width=use_container_width
             )
@@ -178,7 +258,7 @@ def main():
             plt.close(fig)
 
         # Update metrics every 0.3 sec
-        if time.time() - last_update_time >= 0.3:
+        if time.time() - st.session_state.last_update_time >= 0.3:
             accuracy = max(0, 100 * (1 - abs(actual - pred) / max(actual, 1e-5)))
 
             metric_pred.markdown(
@@ -206,67 +286,15 @@ def main():
                 """, unsafe_allow_html=True
             )
 
-            last_update_time = time.time()
+            st.session_state.last_update_time = time.time()
 
-        i += 1
-        time.sleep(0.005)  # Reduced sleep time for faster simulation
+        st.session_state.i += 1
+        time.sleep(0.005)
 
     # Show completion message when done
-    if i >= len(X_test):
+    if st.session_state.i >= len(X_test):
         st.success("Simulation completed!")
-
-    # =========================
-    # PROJECT INFORMATION SECTION
-    # =========================
-    st.markdown("---")
-    
-    st.markdown("""
-    # Electric Motor Temperature Prediction using Deep Neural Networks
-    *Real-time thermal monitoring for industrial motor protection*
-
-    ## Project Overview
-    This project predicts **permanent magnet temperature (PM)** in real-time using **1.3+ million sensor readings** from PMSM motors. The DNN model enables instant thermal monitoring to prevent motor damage and optimize efficiency in industrial applications.
-
-    **Dataset Source:** [Electric Motor Temperature Dataset](https://www.kaggle.com/datasets/wkirgsn/electric-motor-temperature)
-
-    ---
-
-    ## Model Performance Excellence
-
-    | Metric | Performance | Industrial Standard |
-    |--------|-------------|---------------------|
-    | **Mean Absolute Error (MAE)** | 1.28 °C | ±2–3°C |
-    | **Root Mean Squared Error (RMSE)** | 1.78 °C | < 2.0°C |
-    | **R² Score (Variance Explained)** | 0.991 (99.1%) | > 0.95 |
-    | **95% Error Range** | ±3.59 °C | ±5°C |
-
-    ### **Business Impact:**
-    - **Predicts within ±1.3°C on average** - exceeds industrial requirements
-    - **Explains 99.1% of temperature variance** - highly reliable
-    - **95% of predictions within ±3.6°C** - consistent performance
-    - **EXCELLENT**: Meets and exceeds industrial accuracy requirements!
-
-    ---
-
-    ## Technical Implementation
-
-    ### Data Strategy
-    - **X and Y datasets are shuffled** to create realistic real-world simulation
-    - **Test data includes outliers** (high/low temperatures) for robust validation
-    - **Real-time accuracy (85%-94%)** reflects challenging edge cases in production data
-
-    ### Model Architecture
-    - **Deep Neural Network (DNN)** with optimized hidden layers
-    - **Input Features:** Voltage, current, speed, coolant, ambient temperature
-    - **Target:** Permanent magnet temperature (`pm`)
-    - **Training Data:** 1,337,097 samples from actual PMSM operations
-
-
-    ## Project Links
-    - **GitHub Repository:** [github.com/MuhammadBun/motor-temperature-prediction](https://github.com/MuhammadBun/motor-temperature-prediction)
-    - **Kaggle Dataset:** [kaggle.com/datasets/yourusername/electric-motor-temperature](https://kaggle.com/datasets/yourusername/electric-motor-temperature)
-    ---
-  """)
+        st.session_state.running = False
 
 if __name__ == "__main__":
     main()
