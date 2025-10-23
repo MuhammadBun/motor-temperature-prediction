@@ -215,5 +215,58 @@ def main():
     if i >= len(X_test):
         st.success("Simulation completed!")
 
+    # =========================
+    # PROJECT INFORMATION SECTION
+    # =========================
+    st.markdown("---")
+    
+    st.markdown("""
+    # Electric Motor Temperature Prediction using Deep Neural Networks
+    *Real-time thermal monitoring for industrial motor protection*
+
+    ## Project Overview
+    This project predicts **permanent magnet temperature (PM)** in real-time using **1.3+ million sensor readings** from PMSM motors. The DNN model enables instant thermal monitoring to prevent motor damage and optimize efficiency in industrial applications.
+
+    **Dataset Source:** [Electric Motor Temperature Dataset](https://www.kaggle.com/datasets/wkirgsn/electric-motor-temperature)
+
+    ---
+
+    ## Model Performance Excellence
+
+    | Metric | Performance | Industrial Standard |
+    |--------|-------------|---------------------|
+    | **Mean Absolute Error (MAE)** | 1.28 °C | ±2–3°C |
+    | **Root Mean Squared Error (RMSE)** | 1.78 °C | < 2.0°C |
+    | **R² Score (Variance Explained)** | 0.991 (99.1%) | > 0.95 |
+    | **95% Error Range** | ±3.59 °C | ±5°C |
+
+    ### **Business Impact:**
+    - **Predicts within ±1.3°C on average** - exceeds industrial requirements
+    - **Explains 99.1% of temperature variance** - highly reliable
+    - **95% of predictions within ±3.6°C** - consistent performance
+    - **EXCELLENT**: Meets and exceeds industrial accuracy requirements!
+
+    ---
+
+    ## Technical Implementation
+
+    ### Data Strategy
+    - **X and Y datasets are shuffled** to create realistic real-world simulation
+    - **Test data includes outliers** (high/low temperatures) for robust validation
+    - **Real-time accuracy (85%-94%)** reflects challenging edge cases in production data
+
+    ### Model Architecture
+    - **Deep Neural Network (DNN)** with optimized hidden layers
+    - **Input Features:** Voltage, current, speed, coolant, ambient temperature
+    - **Target:** Permanent magnet temperature (`pm`)
+    - **Training Data:** 1,337,097 samples from actual PMSM operations
+
+
+    ## Project Links
+    - **GitHub Repository:** [github.com/MuhammadBun/motor-temperature-prediction](https://github.com/MuhammadBun/motor-temperature-prediction)
+    - **Kaggle Dataset:** [kaggle.com/datasets/yourusername/electric-motor-temperature](https://kaggle.com/datasets/yourusername/electric-motor-temperature)
+    ---
+  """)
+
 if __name__ == "__main__":
     main()
