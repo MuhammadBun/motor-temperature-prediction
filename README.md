@@ -1,4 +1,3 @@
-```markdown
 # Real-time DNN PM Temperature Prediction
 
 A Streamlit web application for real-time motor temperature prediction using Deep Neural Networks with industrial-grade accuracy.
@@ -48,19 +47,15 @@ pip install -r requirements.txt
 streamlit run streamlit_motor_test.py
 ```
 
-## Project Structure
-
-```
-motor-temperature-prediction/
-├── streamlit_motor_test.py
-├── style.css
-├── requirements.txt
-├── README.md
-├── .gitattributes
-├── models/
-│   └── motor_dnn_best.keras
-└── data/
-    ├── X_test_reloaded.csv
-    └── y_test_reloaded.csv
-```
- 
+### Project Structure
+    motor-temperature-prediction/
+    ├── streamlit_motor_test.py
+    ├── style.css
+    ├── requirements.txt
+    ├── README.md
+    ├── .gitattributes
+    ├── models/
+    │   └── motor_dnn_best.keras
+    └── data/
+        ├── X_test_reloaded.csv
+        └── y_test_reloaded.csv
